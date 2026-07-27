@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Portfolio - Computer Graphics</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Prompt', 'Kanit', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #fce4ec 0%, #f0dde4 50%, #fbdee7 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .circle-bg {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.35);
+            border-radius: 50%;
+            filter: blur(10px);
+            z-index: 1;
+        }
+        .circle-1 { width: 300px; height: 300px; top: -50px; left: -50px; }
+        .circle-2 { width: 200px; height: 200px; top: 15%; right: 15%; }
+        .circle-3 { width: 400px; height: 400px; bottom: -100px; right: -100px; }
+
+        .card {
+            background: #ffffff;
+            width: 380px;
+            padding: 45px 30px;
+            border-radius: 28px;
+            box-shadow: 0 15px 35px rgba(214, 51, 132, 0.15);
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .icon-box {
+            width: 90px;
+            height: 90px;
+            background-color: #ffe0eb;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 42px;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            color: #ff6b8b;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: #666666;
+            font-size: 0.95rem;
+            font-weight: 400;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .btn-submit {
+            background-color: #ff6584;
+            color: #ffffff;
+            border: 2px solid #2d2d2d;
+            padding: 10px 42px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 0px #2d2d2d;
+            transition: all 0.15s ease;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0px #2d2d2d;
+            background-color: #ff476e;
+        }
+
+        .btn-submit:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0px #2d2d2d;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        .modal-card {
+            background: #ffffff;
+            width: 95%;
+            max-width: 650px; /* ขยายขนาดรองรับแอปวาดรูป */
+            max-height: 90vh;
+            overflow-y: auto;
+            border-radius: 24px;
+            padding: 30px;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .modal-card.wide {
+         max-width: 1500px !important;
+         max-height: 95vh;
+}
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px; right: 20px;
+            font-size: 1.8rem;
+            color: #aaa;
+            cursor: pointer;
+            border: none;
+            background: none;
+            z-index: 10;
+        }
+
+        .menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .menu-item {
+            background: #fff0f5;
+            border: 2px solid #ffccd5;
+            color: #d63384;
+            padding: 14px 20px;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.2s;
+        }
+
+        .menu-item:hover {
+            background: #ff6584;
+            color: white;
+            border-color: #2d2d2d;
+        }
+
+        .view-content { display: none; text-align: left; }
+        
+        .btn-back {
+            background: #e9ecef;
+            color: #495057;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .profile-img {
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            border: 4px solid #ff6584;
+            object-fit: cover;
+            margin: 0 auto 15px auto;
+            display: block;
+        }
+
+        #canvas {
+            border: 2px solid #ffccd5;
+            border-radius: 12px;
+            display: block;
+            margin: 15px auto;
+            background-color: #ffffff;
+            cursor: crosshair;
+        }
+
+        /* CSS สำหรับ Drawing App (งานที่ 2) */
+        .app-container {
+            display: flex;
+            width: 100%;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .tools-board {
+            width: 260px;
+            background: #fff0f5;
+            border: 1px solid #ffccd5;
+            border-radius: 16px;
+            padding: 15px;
+        }
+
+        .tools-board .section-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #d63384;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .options {
+            list-style: none;
+        }
+
+        .option {
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            border: 1px solid #ffccd5;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            background: #fff;
+            font-size: 0.85rem;
+            color: #444;
+        }
+
+        .option.active {  
+            background: #FFB6C1;
+            color: #fff;
+            border-color: #FFB6C1;
+            font-weight: 600;
+        }
+
+        .color-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            list-style: none;
+            padding: 5px 0;
+        }
+
+        .color-item {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .color-item input[type="color"] {
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+
+        .custom-picker {
+            background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
+        }
+
+        .custom-picker input[type="color"] {
+            opacity: 0;
+        }
+
+        .color-item:hover, .color-item.selected {
+            transform: scale(1.15);
+            border-color: #333;
+        }
+
+        .btn-clear {
+            width: 100%;
+            padding: 8px 0;
+            background: #fff;
+            color: #6C757D;
+            border: 1px solid #FF779F;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-clear:hover {
+            background: #F7D7E4;
+            color: #000;
+        }
+
+        .btn-save {
+            width: 100%;
+            padding: 8px 0;
+            background: #FFC0CB;
+            color: #333;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-save:hover {
+            background: #FFB6C1;
+        }
+
+        .drawing-board {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #ffffff;
+            border: 2px dashed #ffccd5;
+            border-radius: 16px;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        #drawCanvas {
+            background: #ffffff;
+            cursor: crosshair;
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="circle-bg circle-1"></div>
+    <div class="circle-bg circle-2"></div>
+    <div class="circle-bg circle-3"></div>
+
+    <div class="card">
+        <div class="icon-box">🌸</div>
+        <h1 class="title">My Portfolio</h1>
+        <p class="subtitle">
+            Interactive Computer Graphics<br>
+            ยินดีต้อนรับเข้าสู่แฟ้มสะสมผลงาน
+        </p>
+        <button class="btn-submit" onclick="openModal('menu')">ดูผลงาน</button>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-card">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+
+            <!-- เมนูหลัก -->
+            <div id="menuView" class="view-content" style="display: block;">
+                <h3 style="color: #ff6584; text-align: center; font-size: 1.3rem;">เลือกรายการที่ต้องการชม</h3>
+                <div class="menu-list">
+                    <div class="menu-item" onclick="switchView('profile')">
+                        <span>👤 1. ประวัติส่วนตัว (Profile)</span>
+                        <span>➔</span>
+                    </div>
+                    <div class="menu-item" onclick="switchView('project1')">
+                        <span>😊 2. งานที่ 1 (ภาพยิ้ม Canvas)</span>
+                        <span>➔</span>
+                    </div>
+                    <div class="menu-item" onclick="switchView('project2')">
+                        <span>🎨 3. งานที่ 2 (แอปวาดรูป Drawing App)</span>
+                        <span>➔</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- หน้า 1: ประวัติส่วนตัว -->
+            <div id="profileView" class="view-content">
+                <button class="btn-back" onclick="switchView('menu')">⬅ ย้อนกลับ</button>
+                <img src="c:\Users\sasik\Downloads\IMG_7793.jpeg" alt="Profile" class="profile-img">
+                <h3 style="color: #ff6584; text-align: center;">ศศิกาญจน์ น้อยผล</h3>
+                <p style="text-align: center; color: #666; font-size: 0.9rem; margin-top: 5px;">
+                    <strong>รหัสนิสิต:</strong> 6721601486 | <strong>หมู่เรียน:</strong> 700<br>
+                    คณะศิลปศาสตร์และวิทยาศาสตร์ สาขาวิชาวิทยาการคอมพิวเตอร์<br>
+                    มหาวิทยาลัยเกษตรศาสตร์ กำแพงแสน
+                </p>
+            </div>
+
+            <!-- หน้า 2: งานที่ 1 -->
+            <div id="project1View" class="view-content">
+                <button class="btn-back" onclick="switchView('menu')">⬅ ย้อนกลับ</button>
+                <h3 style="color: #ff6584;">งานที่ 1: Interactive Computer Graphics</h3>
+                <p style="color: #666; font-size: 0.85rem;">โปรแกรมวาดภาพหน้ายิ้ม (ใช้ลูกศรขึ้น/ลง ย่อ-ขยาย, ซ้าย/ขวา หมุน)</p>
+                <canvas id="canvas" width="500" height="450"></canvas>
+            </div>
+
+            <!-- หน้า 3: งานที่ 2 (แอปวาดรูปของคุณ) -->
+            <div id="project2View" class="view-content">
+                <button class="btn-back" onclick="switchView('menu')">⬅ ย้อนกลับ</button>
+                <h3 style="color: #ff6584;">งานที่ 2: Drawing App - Computer Graphics</h3>
+                
+                <div class="app-container">
+                    <!-- แถบเครื่องมือฝั่งซ้าย -->
+                    <section class="tools-board">
+                        <label class="section-title">SHAPES</label>
+                        <ul class="options">
+                            <li class="option active" id="tool-free"><span>✎ Free Draw / Pencil</span></li>
+                            <li class="option" id="tool-line"><span>│ Line</span></li>
+                            <li class="option" id="tool-ellipse"><span>○ Ellipse / Circle</span></li>
+                            <li class="option" id="tool-triangle"><span>△ Triangle</span></li>
+                            <li class="option" id="tool-rect"><span>□ Rectangle</span></li>
+                            <li class="option" id="tool-rect-fill"><span>■ Filled Rectangle</span></li>
+                            <li class="option" id="tool-rect-gradient"><span>▨ Gradient Rectangle</span></li>
+                        </ul>
+
+                        <label class="section-title" style="margin-top: 15px;">OPTIONS</label>
+                        <ul class="options">
+                            <li style="padding: 5px 0; margin-bottom: 5px; display: flex; flex-direction: column; gap: 5px;">
+                                <span style="font-size: 0.8rem; color: #555;">SIZE : <span id="size-value">2</span> px</span>
+                                <input type="range" id="size-slider" min="1" max="30" value="2" style="width: 100%; cursor: pointer;">
+                            </li>
+                            <li class="option" id="tool-brush"><span>🖌 Brush</span></li>
+                            <li class="option" id="tool-eraser"><span>▰ Eraser</span></li>
+                        </ul>
+
+                        <label class="section-title" style="margin-top: 15px;">COLORS</label>
+                        <ul class="color-options">
+                            <li class="color-item selected" style="background-color: #000000;" onclick="selectColor(0,0,0, this)"></li>
+                            <li class="color-item" style="background-color: #84817a;" onclick="selectColor(132,129,122, this)"></li> 
+                            <li class="color-item" style="background-color: #ffffff; border: 2px solid #ccc;" onclick="selectColor(255,255,255, this)"></li>
+                            <li class="color-item" style="background-color: #ff4d4d;" onclick="selectColor(255,77,77, this)"></li>
+                            <li class="color-item" style="background-color: #ffaf40;" onclick="selectColor(255,175,64, this)"></li>
+                            <li class="color-item" style="background-color: #fffa65;" onclick="selectColor(255,250,101, this)"></li>
+                            <li class="color-item" style="background-color: #00b894;" onclick="selectColor(0, 184, 148, this)"></li>
+                            <li class="color-item" style="background-color: #32ff7e;" onclick="selectColor(50,255,126, this)"></li>
+                            <li class="color-item" style="background-color: #7efff5;" onclick="selectColor(126,255,245, this)"></li>
+                            <li class="color-item" style="background-color: #18dcff;" onclick="selectColor(24, 220, 255, this)"></li> 
+                            <li class="color-item" style="background-color: #0984e3;" onclick="selectColor(9,132,227, this)"></li>   
+                            <li class="color-item" style="background-color: #c56cf0;" onclick="selectColor(197,108,240, this)"></li> 
+                            <li class="color-item" style="background-color: #FF69B4;" onclick="selectColor(255,105,180, this)"></li> 
+                            
+                            <li class="color-item custom-picker">
+                                <input type="color" id="customColorPicker" onchange="pickCustomColor(this)">
+                            </li>
+                        </ul>
+
+                        <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 8px;">
+                            <button class="btn-clear" id="clear-canvas">Clear Canvas</button>
+                            <button class="btn-save" id="save-img">Save As Image</button>
+                        </div>
+                    </section>
+
+                    <!-- ฝั่งพื้นที่กระดานวาดรูป -->
+                    <section class="drawing-board">
+                        <canvas id="drawCanvas" width="1000" height="650"></canvas>
+                    </section>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+
+        // Modal Logic
+      
+        const modalOverlay = document.getElementById('modalOverlay');
+
+        function openModal(viewName) {
+            modalOverlay.style.display = 'flex';
+            switchView(viewName);
+        }
+
+        function closeModal() {
+            modalOverlay.style.display = 'none';
+        }
+
+       function switchView(viewName) {
+        document.querySelectorAll('.view-content').forEach(view => {
+            view.style.display = 'none';
+        });
+        document.getElementById(viewName + 'View').style.display = 'block';
+
+        // เช็กถ้าเป็นงานที่ 2 ให้ขยายกว้าง ถ้าเป็นหน้าอื่นให้กลับมาขนาดปกติ
+        const modalCard = document.querySelector('.modal-card');
+        if (viewName === 'project2') {
+            modalCard.classList.add('wide');
+        } else {
+            modalCard.classList.remove('wide');
+        }
+}
+        window.onclick = function(e) {
+            if (e.target === modalOverlay) closeModal();
+        }
+
+        
+        // งานที่ 1 (Canvas)
+        
+        const canvas1 = document.getElementById('canvas');
+        const ctx1 = canvas1.getContext('2d');
+        const imageData1 = ctx1.createImageData(canvas1.width, canvas1.height);
+        const pixels1 = imageData1.data;
+
+        function putPixel1(x, y, r, g, b, a = 255) {
+            if (x < 0 || x >= canvas1.width || y < 0 || y >= canvas1.height) return;
+            const idx = (y * canvas1.width + x) * 4;
+            pixels1[idx] = r;
+            pixels1[idx + 1] = g;
+            pixels1[idx + 2] = b;
+            pixels1[idx + 3] = a;
+        }
+
+        function drawLine1(x1, y1, x2, y2, r, g, b, a = 255) {
+            const dx = Math.abs(x2 - x1);
+            const dy = Math.abs(y2 - y1);
+            if(dx > dy) {
+                const m = (y2 - y1) / (x2 - x1 || 1);
+                const c = y1 - m * x1;
+                for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+                    const y = Math.round(m * x + c);
+                    putPixel1(x, y, r, g, b, a);
+                }
+            } else {
+                const m = (x2 - x1) / (y2 - y1 || 1);
+                const c = x1 - m * y1;
+                for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+                    const x = Math.round(m * y + c);
+                    putPixel1(x, y, r, g, b, a);
+                }
+            }
+        }
+
+        function drawRectFilled1(x1, y1, x2, y2, r, g, b, a = 255) {
+            for (let y = y1; y <= y2; y++) {
+                for (let x = x1; x <= x2; x++) {
+                    putPixel1(x, y, r, g, b, a);
+                }
+            }
+        }
+
+        function drawEllipse1(cx, cy, rx, ry, r, g, b, a = 255) {
+            for (let y = -ry; y <= ry; y++) {
+                for (let x = -rx; x <= rx; x++) {
+                    if ((x * x) / (rx * rx || 1) + (y * y) / (ry * ry || 1) < 1) {
+                        putPixel1(cx + x, cy + y, r, g, b, a);
+                    }
+                }
+            }
+        }
+
+        function drawSpriteRotateScale(sprite, x, y, degree, scaleX, scaleY, r, g, b, a = 255) {
+            for (let j = 0; j < sprite.length; j++) {
+                for (let i = 0; i < sprite[j].length; i++) {
+                    const color = sprite[j][i];
+                    if (color != null) {
+                        const rVal = (color >> 16) & 255;
+                        const gVal = (color >> 8) & 255;
+                        const bVal = color & 255;
+                        const cX = i - (sprite[j].length / 2);
+                        const cY = j - (sprite.length / 2);
+                        const rad = degree * Math.PI / 180;
+                        const x_rotated = Math.round(cX * Math.cos(rad) - cY * Math.sin(rad));
+                        const y_rotated = Math.round(cX * Math.sin(rad) + cY * Math.cos(rad));
+                        const x_rotated_scaled = Math.round(x_rotated * scaleX);
+                        const y_rotated_scaled = Math.round(y_rotated * scaleY);
+                        drawEllipse1(x + x_rotated_scaled, y + y_rotated_scaled, Math.max(1, Math.round(scaleX)), Math.max(1, Math.round(scaleY)), rVal, gVal, bVal, a);
+                    }
+                }
+            }
+        }
+
+        function toScaledMousePos1(posX, posY) {
+            const rect = canvas1.getBoundingClientRect();
+            const scaleX = canvas1.width / rect.width;
+            const scaleY = canvas1.height / rect.height;
+            return {
+                x: Math.floor((posX - rect.left) * scaleX),
+                y: Math.floor((posY - rect.top) * scaleY)
+            };
+        }
+
+        const smileSprite24Bit32x32 = [
+            [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null, null, null, null, null, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, null, null, null, null, null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null, null, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, 0xFFDF48, 0xFFDF48, 0xFFDF48, 0xFFDF48, 0xFFDF48, 0xFFDF48, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, null, null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null, 0xC76A08, 0xC76A08, 0xFFDE47, 0xFFDE47, 0xFFDE47, 0xFFDE47, 0xFFDE47, 0xFFDE47, 0xFFDE47, 0xFFDE47, 0xFFDE47, 0xFFDE47, 0xFFDE47, 0xFFDE47, 0xC76A08, 0xC76A08, null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, 0xC76A08, 0xC76A08, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xC76A08, 0xC76A08, null, null, null, null, null, null],
+            [null, null, null, null, null, 0xC76A08, 0xC76A08, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xC76A08, 0xC76A08, null, null, null, null, null],
+            [null, null, null, null, 0xC76A08, 0xC76A08, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xC76A08, 0xC76A08, null, null, null, null],
+            [null, null, null, null, 0xC76A08, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xC76A08, null, null, null, null],
+            [null, null, null, 0xC76A08, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xC76A08, null, null, null],
+            [null, null, 0xC76A08, 0xC76A08, 0xFFD640, 0xFFD640, 0xFFD640, 0xFFD640, 0xFFD640, 0x3B2507, 0x3B2507, 0x3B2507, 0xFFD640, 0xFFD640, 0xFFD640, 0xFFD640, 0xFFD640, 0xFFD640, 0xFFD640, 0xFFD640, 0x3B2507, 0x3B2507, 0x3B2507, 0xFFD640, 0xFFD640, 0xFFD640, 0xFFD640, 0xFFD640, 0xC76A08, 0xC76A08, null, null],
+            [null, null, 0xC76A08, 0xFFD53E, 0xFFD53E, 0xFFD53E, 0xFFD53E, 0xFFD53E, 0x3B2507, 0xFFFFFF, 0x3B2507, 0x3B2507, 0x3B2507, 0xFFD53E, 0xFFD53E, 0xFFD53E, 0xFFD53E, 0xFFD53E, 0xFFD53E, 0x3B2507, 0xFFFFFF, 0x3B2507, 0x3B2507, 0x3B2507, 0xFFD53E, 0xFFD53E, 0xFFD53E, 0xFFD53E, 0xFFD53E, 0xC76A08, null, null],
+            [null, null, 0xC76A08, 0xFFD43D, 0xFFD43D, 0xFFD43D, 0xFFD43D, 0xFFD43D, 0x3B2507, 0x3B2507, 0x3B2507, 0x3B2507, 0x3B2507, 0xFFD43D, 0xFFD43D, 0xFFD43D, 0xFFD43D, 0xFFD43D, 0xFFD43D, 0x3B2507, 0x3B2507, 0x3B2507, 0x3B2507, 0x3B2507, 0xFFD43D, 0xFFD43D, 0xFFD43D, 0xFFD43D, 0xFFD43D, 0xC76A08, null, null],
+            [null, 0xC76A08, 0xC76A08, 0xFFD33C, 0xFFD33C, 0xFFD33C, 0xFFD33C, 0xFFD33C, 0x3B2507, 0x3B2507, 0x3B2507, 0x3B2507, 0x3B2507, 0xFFD33C, 0xFFD33C, 0xFFD33C, 0xFFD33C, 0xFFD33C, 0xFFD33C, 0x3B2507, 0x3B2507, 0x3B2507, 0x3B2507, 0x3B2507, 0xFFD33C, 0xFFD33C, 0xFFD33C, 0xFFD33C, 0xFFD33C, 0xC76A08, 0xC76A08, null],
+            [null, 0xC76A08, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0x3B2507, 0x3B2507, 0x3B2507, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0x3B2507, 0x3B2507, 0x3B2507, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xC76A08, null],
+            [null, 0xC76A08, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xC76A08, null],
+            [null, 0xC76A08, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xC76A08, null],
+            [null, 0xC76A08, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xF58B73, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xF58B73, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xC76A08, null],
+            [null, 0xC76A08, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xC76A08, null],
+            [null, 0xC76A08, 0xFFCB35, 0xFFCB35, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xFFCB35, 0xFFCB35, 0xFFCB35, 0xFFCB35, 0xFFCB35, 0xFFCB35, 0xFFCB35, 0xFFCB35, 0xFFCB35, 0xFFCB35, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xFFCB35, 0xFFCB35, 0xC76A08, null],
+            [null, 0xC76A08, 0xC76A08, 0xFFC934, 0xFFC934, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xFFC934, 0xFFC934, 0xFFC934, 0xFFC934, 0xFFC934, 0xFFC934, 0xFFC934, 0xFFC934, 0xFFC934, 0xFFC934, 0xFFC934, 0xFFC934, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xFFC934, 0xFFC934, 0xC76A08, 0xC76A08, null],
+            [null, null, 0xC76A08, 0xFFC833, 0xFFC833, 0xFFC833, 0xFFC833, 0xF58B73, 0xFFC833, 0x7A2E0B, 0x7A2E0B, 0xFFC833, 0xFFC833, 0xFFC833, 0xFFC833, 0xFFC833, 0xFFC833, 0xFFC833, 0xFFC833, 0xFFC833, 0xFFC833, 0x7A2E0B, 0x7A2E0B, 0xFFC833, 0xF58B73, 0xFFC833, 0xFFC833, 0xFFC833, 0xFFC833, 0xC76A08, null, null],
+            [null, null, 0xC76A08, 0xFFC732, 0xFFC732, 0xFFC732, 0xFFC732, 0xFFC732, 0xFFC732, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0xFFC732, 0xFFC732, 0xFFC732, 0xFFC732, 0xFFC732, 0xFFC732, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0xFFC732, 0xFFC732, 0xFFC732, 0xFFC732, 0xFFC732, 0xFFC732, 0xC76A08, null, null],
+            [null, null, 0xC76A08, 0xC76A08, 0xFFC630, 0xFFC630, 0xFFC630, 0xFFC630, 0xFFC630, 0xFFC630, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0xFFC630, 0xFFC630, 0xFFC630, 0xFFC630, 0xFFC630, 0xFFC630, 0xC76A08, 0xC76A08, null, null],
+            [null, null, null, 0xC76A08, 0xFFC42F, 0xFFC42F, 0xFFC42F, 0xFFC42F, 0xFFC42F, 0xFFC42F, 0xFFC42F, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0xFFC42F, 0xFFC42F, 0xFFC42F, 0xFFC42F, 0xFFC42F, 0xFFC42F, 0xFFC42F, 0xC76A08, null, null, null],
+            [null, null, null, null, 0xC76A08, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xC76A08, null, null, null, null],
+            [null, null, null, null, 0xC76A08, 0xC76A08, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xC76A08, 0xC76A08, null, null, null, null],
+            [null, null, null, null, null, 0xC76A08, 0xC76A08, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xC76A08, 0xC76A08, null, null, null, null, null],
+            [null, null, null, null, null, null, 0xC76A08, 0xC76A08, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xC76A08, 0xC76A08, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null, 0xC76A08, 0xC76A08, 0xFFBE29, 0xFFBE29, 0xFFBE29, 0xFFBE29, 0xFFBE29, 0xFFBE29, 0xFFBE29, 0xFFBE29, 0xFFBE29, 0xFFBE29, 0xFFBE29, 0xFFBE29, 0xC76A08, 0xC76A08, null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null, null, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, 0xFFBD28, 0xFFBD28, 0xFFBD28, 0xFFBD28, 0xFFBD28, 0xFFBD28, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, null, null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null, null, null, null, null, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, null, null, null, null, null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
+        ];
+
+        let isDragging1 = false; 
+        let previousX1 = 0, previousY1 = 0;
+        let r1 = 0, g1 = 0, b1 = 0;
+        let degree1 = 0, scale1 = 1;
+        let mouseX1 = 200, mouseY1 = 150;
+
+        canvas1.addEventListener('mousedown', () => { isDragging1 = true; });
+        canvas1.addEventListener('mouseup', () => { isDragging1 = false; });
+        canvas1.addEventListener('mousemove', (event) => {
+            const { x, y } = toScaledMousePos1(event.clientX, event.clientY);
+            mouseX1 = x; mouseY1 = y;
+            if(isDragging1) {
+                drawLine1(previousX1, previousY1, x, y, r1, g1, b1);
+            }
+            previousX1 = x; previousY1 = y;
+        });
+
+        window.addEventListener('keydown', (event) => {
+            if(event.key === '1') { r1 = 255; g1 = 0; b1 = 0; }
+            else if(event.key === '2') { r1 = 0; g1 = 255; b1 = 0; }
+            else if(event.key === '3') { r1 = 0; g1 = 0; b1 = 255; }
+
+            if(event.key === 'ArrowLeft') { degree1 -= 5; }
+            else if(event.key === 'ArrowRight') { degree1 += 5; }
+
+            if(event.key === 'ArrowUp') { scale1 += 0.1; }
+            else if(event.key === 'ArrowDown') { scale1 = Math.max(0.1, scale1 - 0.1); }
+        });
+
+        function animate1() {
+            drawRectFilled1(0, 0, canvas1.width - 1, canvas1.height - 1, 255, 255, 255);
+            drawSpriteRotateScale(smileSprite24Bit32x32, mouseX1, mouseY1, degree1, scale1, scale1, 255, 128, 0); 
+            ctx1.putImageData(imageData1, 0, 0);
+            requestAnimationFrame(animate1);
+        }
+        animate1();
+
+        
+        // Logic งานที่ 2 (Drawing App )
+        
+        const drawCanvas = document.getElementById("drawCanvas");
+        const ctxDraw = drawCanvas.getContext("2d");
+        const sizeSlider = document.getElementById("size-slider");
+        const sizeValue = document.getElementById("size-value");
+
+        let isDrawingApp = false;
+        let brushWidth = 2;
+        let selectedColor = "rgb(0, 0, 0)";
+        let selectedTool = "tool-free";
+
+        sizeSlider.addEventListener("input", () => {
+            brushWidth = sizeSlider.value;
+            sizeValue.innerText = brushWidth;
+        });
+
+        function selectColor(r, g, b, element) {
+            selectedColor = "rgb(" + r + ", " + g + ", " + b + ")";
+            document.querySelectorAll('#project2View .color-item').forEach(el => el.classList.remove('selected'));
+            if (element) element.classList.add('selected');
+        }
+
+        function pickCustomColor(picker) {
+            const hex = picker.value;
+            const r = parseInt(hex.substr(1,2), 16);
+            const g = parseInt(hex.substr(3,2), 16);
+            const b = parseInt(hex.substr(5,2), 16);
+            selectedColor = "rgb(" + r + ", " + g + ", " + b + ")";
+            document.querySelectorAll('#project2View .color-item').forEach(el => el.classList.remove('selected'));
+            picker.parentElement.classList.add('selected');
+        }
+
+        const toolButtons = document.querySelectorAll("#project2View .options .option");
+        toolButtons.forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelector("#project2View .options .option.active")?.classList.remove("active");
+                btn.classList.add("active");
+                selectedTool = btn.id;
+            });
+        });
+
+        function drawPixelApp(x, y, color){
+            ctxDraw.fillStyle = color;
+            ctxDraw.fillRect(Math.floor(x) , Math.floor(y), brushWidth, brushWidth);
+        }
+
+        function drawLineApp(x1, y1, x2, y2, color){
+            const dx = Math.abs(x2 - x1);
+            const dy = Math.abs(y2 - y1);
+
+            if(dx > dy){
+                const m = (x2 - x1 === 0 ) ? 0 : (y2 - y1) / (x2 - x1);
+                const c = y1 - m * x1;
+                const startX = Math.min(x1, x2);
+                const endX = Math.max(x1, x2);
+
+                for (let x = startX; x <= endX; x++) {
+                    const y = Math.round(m * x + c);
+                    drawPixelApp(x, y, color);
+                }
+            } else { 
+                const m = (y2 - y1 === 0) ? 0 : (x2 - x1) / (y2 - y1);
+                const c = x1 - m * y1;
+                const startY = Math.min(y1, y2);
+                const endY = Math.max(y1, y2);
+
+                for (let y = startY; y <= endY; y++) {
+                    const x = Math.round(m * y + c);
+                    drawPixelApp(x, y, color);
+                }
+            }
+        }
+
+        function drawRectApp(x1, y1, width, height, color) {
+            const x2 = x1 + width;
+            const y2 = y1 + height;
+            drawLineApp(x1, y1, x2, y1, color);
+            drawLineApp(x2, y1, x2, y2, color);
+            drawLineApp(x2, y2, x1, y2, color);
+            drawLineApp(x1, y2, x1, y1, color);
+        }
+
+        function drawRectFilledApp(x1, y1, width, height, color) {
+            const startX = Math.min(x1, x1 + width);
+            const endX = Math.max(x1, x1 + width);
+            const startY = Math.min(y1, y1 + height);
+            const endY = Math.max(y1, y1 + height);
+
+            for (let y = startY; y <= endY; y++) {
+                for (let x = startX; x <= endX; x++) {
+                    drawPixelApp(x, y, color);
+                }
+            }
+        }
+
+        function drawRectGradientApp(x1, y1, width, height, colorStart, colorEnd) {
+            const startY = Math.min(y1, y1 + height);
+            const endY = Math.max(y1, y1 + height);
+            const startX = Math.min(x1, x1 + width);
+            const endX = Math.max(x1, x1 + width);
+
+            for (let y = startY; y <= endY; y += Math.max(1, parseInt(brushWidth))) {
+                let t = (y - startY) / ((endY - startY) || 1);
+                let r = Math.round(colorStart.r * (1 - t) + colorEnd.r * t);
+                let g = Math.round(colorStart.g * (1 - t) + colorEnd.g * t);
+                let b = Math.round(colorStart.b * (1 - t) + colorEnd.b * t);
+                let currentColor = "rgb(" + r + "," + g + "," + b + ")";
+
+                for (let x = startX; x <= endX; x += Math.max(1, parseInt(brushWidth))) {
+                    drawPixelApp(x, y, currentColor);
+                }
+            }
+        }
+
+        function drawTriangleApp(x1, y1, x2, y2, color) {
+            const topX = (x1 + x2) / 2;
+            const topY = y1;
+            drawLineApp(topX, topY, x1, y2, color);
+            drawLineApp(x1, y2, x2, y2, color);
+            drawLineApp(x2, y2, topX, topY, color);
+        }
+
+        function drawEllipseApp(x1, y1, x2, y2, color) {
+            const rx = Math.abs(x2 - x1) / 2;
+            const ry = Math.abs(y2 - y1) / 2;
+            const cx = Math.min(x1, x2) + rx;
+            const cy = Math.min(y1, y2) + ry;
+
+            const step = 0.01;
+            for (let angle = 0; angle < 2 * Math.PI; angle += step) {
+                const x = cx + rx * Math.cos(angle);
+                const y = cy + ry * Math.sin(angle);
+                drawPixelApp(x, y, color);
+            }
+        }
+
+        function parseRGB(rgbStr) {
+            const match = rgbStr.match(/\d+/g);
+            return match ? { r: parseInt(match[0]), g: parseInt(match[1]), b: parseInt(match[2]) } : { r: 0, g: 0, b: 0 };
+        }
+
+        let prevXApp = 0;
+        let prevYApp = 0;
+        let snapshotApp = null;
+
+        function getMousePosApp(e){
+            const rect = drawCanvas.getBoundingClientRect();
+            const scaleX = drawCanvas.width / rect.width;
+            const scaleY = drawCanvas.height / rect.height;
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        }
+
+        drawCanvas.addEventListener("mousedown", (e) => {
+            isDrawingApp = true;
+            const pos = getMousePosApp(e);
+            prevXApp = pos.x;
+            prevYApp = pos.y;
+
+            snapshotApp = ctxDraw.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+
+            if(selectedTool === "tool-free" || selectedTool === "tool-brush"){
+                drawPixelApp(prevXApp, prevYApp, selectedColor);
+            } else if (selectedTool === "tool-eraser"){
+                drawPixelApp(prevXApp, prevYApp, "#ffffff");
+            }
+        });
+
+        drawCanvas.addEventListener("mousemove", (e) => {
+            if(!isDrawingApp) return;
+            const pos = getMousePosApp(e);
+
+            if(selectedTool === "tool-free" || selectedTool === "tool-brush"){
+                drawLineApp(prevXApp, prevYApp, pos.x, pos.y, selectedColor);
+                prevXApp = pos.x;
+                prevYApp = pos.y; 
+            } else if (selectedTool === "tool-eraser"){
+                drawLineApp(prevXApp, prevYApp, pos.x, pos.y, "#ffffff");
+                prevXApp = pos.x;
+                prevYApp = pos.y;
+            } else {
+                ctxDraw.putImageData(snapshotApp, 0, 0);
+
+                const width = pos.x - prevXApp;
+                const height = pos.y - prevYApp;
+
+                if(selectedTool === "tool-line"){
+                    drawLineApp(prevXApp, prevYApp, pos.x, pos.y, selectedColor);
+                } else if(selectedTool === "tool-ellipse"){
+                    drawEllipseApp(prevXApp, prevYApp, pos.x, pos.y, selectedColor);
+                } else if(selectedTool === "tool-triangle"){
+                    drawTriangleApp(prevXApp, prevYApp, pos.x, pos.y, selectedColor);
+                } else if(selectedTool === "tool-rect"){
+                    drawRectApp(prevXApp, prevYApp, width, height, selectedColor);
+                } else if(selectedTool === "tool-rect-fill"){
+                    drawRectFilledApp(prevXApp, prevYApp, width, height, selectedColor);
+                } else if(selectedTool === "tool-rect-gradient"){
+                    const colorStart = parseRGB(selectedColor);
+                    const colorEnd = { r : 255 , g : 255 , b : 255};
+                    drawRectGradientApp(prevXApp, prevYApp, width, height, colorStart, colorEnd);
+                }
+            }
+        }); 
+
+        const stopDrawingApp = () => {
+            isDrawingApp = false;
+        };
+        drawCanvas.addEventListener("mouseup", stopDrawingApp);
+        drawCanvas.addEventListener("mouseleave", stopDrawingApp);
+
+        document.getElementById("clear-canvas").addEventListener("click", () => {
+            ctxDraw.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+        });
+
+        document.getElementById("save-img").addEventListener("click", () => {
+            const link = document.createElement("a");
+            link.download = "my-drawing.png";
+            link.href = drawCanvas.toDataURL();
+            link.click();
+        });
+    </script>
+</body>
+</html>

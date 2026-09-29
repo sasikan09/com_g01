@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Portfolio</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #FAF3E0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        #backButton {
+            display: none;
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            z-index: 100;
+            border: none;
+            border-radius: 30px;
+            padding: 12px 26px;
+            background: linear-gradient(135deg, #FF9EAA, #FFD1DA);
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(255, 158, 170, 0.4);
+            backdrop-filter: blur(8px);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+        }
+        #backButton:hover {
+            background: linear-gradient(135deg, #FF8595, #FFB8C6);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 25px rgba(255, 133, 149, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+<button id="backButton">← BACK </button>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/EXRLoader.js"></script>
+
+<script>
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xFAF3E0);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+const initialCameraPos = new THREE.Vector3(0, 6.5, 18.0);
+const initialTargetPos = new THREE.Vector3(0, 1.0, 0);
+camera.position.copy(initialCameraPos);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.target.copy(initialTargetPos);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.maxPolarAngle = Math.PI / 2 + 0.1;
+controls.update();
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+directionalLight.position.set(10, 15, 10);
+directionalLight.castShadow = true;
+directionalLight.shadow.mapSize.width = 2048;
+directionalLight.shadow.mapSize.height = 2048;
+scene.add(directionalLight);
+
+const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.7);
+hemiLight.position.set(0, 20, 0);
+scene.add(hemiLight);
+
+const exrSkyboxUrl = 'https://dl.polyhaven.org/file/ph-assets/HDRIs/exr/1k/sun_st_michaelis_1k.exr';
+const pmremGenerator = new THREE.PMREMGenerator(renderer);
+pmremGenerator.compileEquirectangularShader();
+
+new THREE.EXRLoader().setDataType(THREE.UnsignedByteType).load(
+    exrSkyboxUrl,
+    (texture) => {
+        const skybox = pmremGenerator.fromEquirectangular(texture).texture;
+        scene.environment = skybox;
+        texture.dispose();
+        pmremGenerator.dispose();
+    },
+    undefined,
+    (error) => {
+        console.error("Unable to load EXR environment:", error);
+    }
+);
+
+const clock = new THREE.Clock();
+let mixer;
+let shaderTime = 0;
+
+const flowers = [];
+const trees = [];
+const leaves = [];
+
+const loader = new THREE.GLTFLoader();
+
+loader.load(
+    'https://sasikan09.github.io/com_g01/Castel2.glb',
+    (gltf) => {
+        const model = gltf.scene;
+
+        model.traverse((child) => {
+            if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+
+                if (child.material) {
+                    child.material.side = THREE.DoubleSide;
+                }
+
+                console.log("Object:", child.name);
+
+                // ดอกไม้
+                if (
+                    child.name === "Icosphere025_1" ||
+                    child.name === "Icosphere029_1" ||
+                    child.name === "Icosphere057_1" ||
+                    child.name === "Icosphere057" ||
+                    child.name === "Icosphere056"
+                ) {
+                    flowers.push(child);
+                }
+
+                // ต้นไม้
+                if (
+                    child.name === "Circle037" ||
+                    child.name === "Circle025"
+                ) {
+                    trees.push(child);
+                }
+
+                // ใบไม้ + Vertex Shader
+                if (
+                    child.name === "Plane001" ||
+                    child.name === "Plane002" ||
+                    child.name === "Plane003"
+                ) {
+                    leaves.push(child);
+
+                    if (child.material) {
+                        child.material.onBeforeCompile = function(shader) {
+                            shader.uniforms.uTime = { value: 0 };
+                            child.userData.shader = shader;
+
+                            shader.vertexShader = `
+                                uniform float uTime;
+                            ` + shader.vertexShader;
+
+                            shader.vertexShader = shader.vertexShader.replace(
+                            '#include <begin_vertex>',
+                            `
+                             #include <begin_vertex>
+                            float wave = sin(uTime * 2.5);
+
+                            float strength = 0.20;
+
+                            transformed.x += wave * strength;
+                            transformed.z += cos(uTime * 2.0) * 0.08;
+                            `
+                            );
+                        };
+
+                        child.material.needsUpdate = true;
+                    }
+                }
+            }
+        });
+
+        model.position.set(0, 0, 0);
+        model.scale.set(1, 1, 1);
+        scene.add(model);
+
+        if (gltf.animations && gltf.animations.length > 0) {
+            mixer = new THREE.AnimationMixer(model);
+
+            const clip =
+                THREE.AnimationClip.findByName(
+                    gltf.animations,
+                    'door_closing'
+                ) || gltf.animations[0];
+
+            if (clip) {
+                mixer.clipAction(clip).play();
+            }
+        }
+    },
+    undefined,
+    (error) => {
+        console.error("Failed to load model:", error);
+    }
+);
+
+const cameraPositions = {
+    about: {
+        position: new THREE.Vector3(3, 4, 10),
+        target: new THREE.Vector3(4.5, 0.5, 0)
+    },
+    project: {
+        position: new THREE.Vector3(0.0, 4.5, -9.0),
+        target: new THREE.Vector3(0.0, 2.0, -1.0)
+    },
+    skill: {
+        position: new THREE.Vector3(-7.5, 3.5, 6.5),
+        target: new THREE.Vector3(-4.0, 1.0, 1.5)
+    }
+};
+
+let moving = false;
+const targetCameraPosition = new THREE.Vector3();
+const targetLookAt = new THREE.Vector3();
+
+function moveCamera(section) {
+    const destination = cameraPositions[section];
+    if (!destination) return;
+
+    targetCameraPosition.copy(destination.position);
+    targetLookAt.copy(destination.target);
+    moving = true;
+    controls.enabled = false;
+    document.getElementById("backButton").style.display = "block";
+}
+
+function resetCamera() {
+    moving = true;
+    targetCameraPosition.copy(initialCameraPos);
+    targetLookAt.copy(initialTargetPos);
+    document.getElementById("backButton").style.display = "none";
+}
+
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+window.addEventListener("click", (event) => {
+    if (event.target.id === "backButton") return;
+
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+
+    const intersects = raycaster.intersectObjects(scene.children, true);
+    if (intersects.length === 0) return;
+
+    const clickedObject = intersects[0].object;
+
+    console.log("คลิก Object:", clickedObject.name);
+
+    if (clickedObject.name === "Text") {
+        console.log("ABOUT");
+        moveCamera("about");
+        return;
+    }
+
+    const hitPoint = intersects[0].point;
+
+    if (hitPoint.x < -1.0 && hitPoint.z > 1.0) {
+        if (hitPoint.y >= 1.8 && hitPoint.y < 3.2) {
+            console.log("PROJECT");
+            moveCamera("project");
+            return;
+        }
+
+        if (hitPoint.y < 1.8) {
+            console.log("SKILL");
+            moveCamera("skill");
+            return;
+        }
+    }
+});
+
+document.getElementById("backButton").addEventListener("click", resetCamera);
+
+window.addEventListener('keydown', (event) => {
+    if (event.key === '1') moveCamera('about');
+    if (event.key === '2') moveCamera('project');
+    if (event.key === '3') moveCamera('skill');
+    if (event.key === 'Escape') resetCamera();
+});
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    const delta = clock.getDelta();
+
+    if (mixer) mixer.update(delta);
+
+    shaderTime += delta;
+
+    leaves.forEach((leaf) => {
+        if (leaf.userData.shader) {
+            leaf.userData.shader.uniforms.uTime.value = shaderTime;
+        }
+    });
+
+    flowers.forEach((flower) => {
+        flower.rotation.y += delta * 0.5;
+    });
+
+    trees.forEach((tree) => {
+        tree.rotation.z =
+            Math.sin(clock.getElapsedTime() * 0.5) * 0.06;
+    });
+
+    if (moving) {
+        camera.position.lerp(targetCameraPosition, 0.025);
+        controls.target.lerp(targetLookAt, 0.025);
+        camera.lookAt(controls.target);
+
+        if (camera.position.distanceTo(targetCameraPosition) < 0.05) {
+            camera.position.copy(targetCameraPosition);
+            controls.target.copy(targetLookAt);
+            moving = false;
+            controls.enabled = true;
+        }
+    } else {
+        controls.update();
+    }
+
+    renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener("resize", () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+
+</body>
+</html>
